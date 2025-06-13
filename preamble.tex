@@ -1,8 +1,10 @@
 % =========================================== PACKAGES ============================================
+% Ltex: enabled=false
 \usepackage[utf8]{inputenc}         % input encoding: UTF-8
 \usepackage[T1]{fontenc}            % font encoding: T1
 \usepackage{textcomp}               % additional symbols
 \usepackage{times}                  % times new roman font
+\usepackage{inconsolata}            % inconsolata font for listings
 \usepackage[main=ngerman]{babel}    % set main language to german
 
 
@@ -13,8 +15,7 @@
 \usepackage{enumitem}               % list customization
 \usepackage{outlines}               % easy nested lists
 \usepackage{tabularx}               % some nicer tables with X columns
-\usepackage{multirow}               % multirow in tables
-\usepackage{bigstrut}               % big struts in tables
+\usepackage{tabu}                   % more flexible tables
 \usepackage{hhline}                 % double lines in tables
 \usepackage{array}
 \usepackage{makecell}               % multi-line cells in tables
@@ -27,18 +28,22 @@
 \usepackage{amssymb}                % more math symbols
 \usepackage{mathtools}
 \usepackage{mhsetup}
+\usepackage{multirow}               % multirow in tables
+\usepackage{bigstrut}               % big struts in tables
 \usepackage{txfonts}
 \usepackage[squaren]{SIunits}       % SI-units
 \usepackage{bm}                     % bold math symbols
 \usepackage{trfsigns}               % needed for "Laplace" symbol (Korrespondenz)
 \usepackage{mathrsfs}               % needed for Fourier transform "F"
 
+\allowdisplaybreaks %allow display breaks in align
+
 
 \usepackage{graphicx}               % include graphics
 \usepackage{graphbox}               % needed for aligning images in multicol environment
 \usepackage{scalerel}               % scale any objects
 \usepackage{anyfontsize}            % set any font size
-\usepackage{xcolor}                 % needed for colors
+\usepackage[table]{xcolor}          % needed for colors
 
 
 \usepackage{tcolorbox}              % colored boxes
@@ -48,7 +53,7 @@
 
 \usepackage{tikz}                   % needed for TikZ drawings
 \usepackage{tikz-3dplot}            % needed for TikZ 3D drawings
-
+\usepackage{pgfplots}
 
 % \usepackage{listings}               % for nicer code display
 % to use nodes inside listing see: https://texample.net/tikz/examples/tikz-listings/
@@ -135,10 +140,14 @@
     itemindent=1ex,                                 % separation between label and item text
     leftmargin=!,                                   % automatically calculate left margin
     after=\label{enum-\EnumitemId}}                 % set label for referencing in labelwidth
-    
-\setlist[itemize]{leftmargin=1.5em}             % left margin for itemize: 1.5em
 
-\setlist{nosep}                                 % no vertical spacing between list items
+\setlist[itemize]{leftmargin=1.5em}                 % left margin for itemize: 1.5em
+\setlist[description]{leftmargin=2ex}               % left margin for description: 2ex
+\setlist{nosep}                                     % no vertical spacing between list items
+
+\renewcommand{\arraystretch}{1}                     % stretch table rows
+
+\setcounter{MaxMatrixCols}{32}                      % increase max columns in matrix environments
 
 \renewcommand{\arraystretch}{1}               % stretch table rows
 
@@ -156,6 +165,7 @@
 \usetikzlibrary{calc}
 \usetikzlibrary{fit}
 
+\pgfplotsset{compat=1.18}
 
 % ------------------------------------ OTHER PACKAGE SETTINGS -------------------------------------
 
@@ -177,12 +187,32 @@
 % custom font size for paragraph titles
 \newcommand{\semilarge}{\fontsize{9}{8}\selectfont} % new font size \semilarge (9pt)
 
-
+\ExplSyntaxOn
 % custom underline command for exclusions on lowercase letters such as g, j, p, q, y
-\newcommand{\myul}[1]{%
-    \uline{\phantom{#1}}%
-    \llap{\contour*{white}{#1}}%
+\newrobustcmd{\myul}[1]{%
+    \if_mode_math:
+        \text{%
+            \uline{\phantom{$#1$}}%
+            \llap{\contour{white}{$#1$}}%
+        }
+    \else:
+        \uline{\phantom{#1}}%
+        \llap{\contour{white}{#1}}%
+    \fi:
 }
+
+\renewrobustcmd{\underline}[1]{%
+    \if_mode_math:
+        \text{%
+            \uline{\phantom{$#1$}}%
+            \llap{\contour{white}{$#1$}}%
+        }
+    \else:
+        \uline{\phantom{#1}}%
+        \llap{\contour{white}{#1}}%
+    \fi:
+}
+\ExplSyntaxOff
 
 
 % setup header and footer
@@ -194,6 +224,20 @@
 
 
 % --------------------------------------- TITLE FORMATTING ----------------------------------------
+
+\titleclass{\part}{straight}
+
+% part formatting
+\titleformat{\part}
+            {\huge\bfseries}
+            {\thepart}
+            {1em}
+            {#1}
+
+\titlespacing{\part}
+             {0.6ex}
+             {1ex}
+             {1ex}
 
 % section formatting
 \titleformat{\section}
@@ -228,8 +272,8 @@
 
 \titlespacing{\section}
              {0mm}
-             {.8ex}
-             {.8ex}
+             {.2ex}
+             {.2ex}
 
 
 % subsection formatting
@@ -262,8 +306,8 @@
 
 \titlespacing{\subsection}
              {0mm}
-             {.8ex}
-             {.8ex}
+             {1ex}
+             {.2ex}
 
 
 % subsubsection formatting
@@ -452,18 +496,27 @@
 
 
 % custom text rightarrow to match tikz arrows
-\renewrobustcmd{\textrightarrow}{
-    \tikz{
-        \draw[-{Stealth[length=1.7mm]},
-              double]
-                (0,0) to (0.3,0);}}
+\renewrobustcmd{\textrightarrow}{%
+    \raisebox{0.2ex}{%
+        \tikz[line width=0.11ex, >={Stealth[length=1.1ex, inset=0.2ex]}]{%
+            \draw (0,-0.13ex) to (0.55em, -0.13ex);%
+            \draw (0, 0.13ex) to (0.55em,  0.13ex);%
+            \draw[line width=0pt, ->] (0.8em,0) to (0.9em,0);%
+        }%
+    }%
+}%
 
 % custom text leftrightarrow to match tikz arrows
-\newrobustcmd{\textlrarrow}{
-    \tikz{
-        \draw[{Stealth[length=1.7mm]}-{Stealth[length=1.7mm]},
-              double]
-                (0,0) to (0.4,0);}}
+\newrobustcmd{\textlrarrow}{%
+    \raisebox{0.2ex}{%
+        \tikz[line width=0.11ex, >={Stealth[length=1.1ex, inset=0.2ex]}]{%
+            \draw (0.35em,-0.13ex) to (0.9em, -0.13ex);%
+            \draw (0.35em, 0.13ex) to (0.9em,  0.13ex);%
+            \draw[line width=0pt, ->] (1.15em,0) to (1.25em,0);%
+            \draw[line width=0pt, <-] (0,0) to (0.1em,0);%
+        }%
+    }%
+}%
 
 
 % renews the pmatrix environment to use \lgroup and \rgroup instead of \left( and \right)
@@ -480,6 +533,12 @@
   {\left\lgroup\MT_matrix_begin:N #1}
   {\MT_matrix_end:\right\rgroup}
 \MHInternalSyntaxOff%
+
+
+% new environment for centered tabulars
+\NewDocumentEnvironment{ctabular}{m}
+                        {\center\tabular{#1}}
+                        {\endtabular\endcenter}
 
 
 % custom command for size matched colored brackets
@@ -603,67 +662,179 @@
 
 
 % new environment for layout --> automatically adjusts to landscape or portrait
-\NewDocumentEnvironment{layout}{}
-                            {\ifthenelse{\paperwidth > \paperheight} % ChkTeX 1
-                            % LANDSCAPE LAYOUT
-                            {\begin{multicols*}{3} % ChkTeX 15
-                                \begin{minipage}[t]{0.18\columnwidth}
-                                    \vspace{-0.225\columnwidth}
-                                    \qrcode[level=L, 
-                                            version=0,
-                                            height=0.9\columnwidth]{\repo}\\[1mm]
-                                    \normalfont\footnotesize V \version{}
-                                    \smallskip
-                                \end{minipage}\hfill
-                                \begin{minipage}[t]{0.81\columnwidth}
-                                    \raggedright%
-                                    \normalfont\huge\bfseries\title{}\\
-                                    \normalfont\Large\semester\ -- \dozent{}\\
-                                    \normalfont\large Autoren:\\
-                                    \normalfont\large\author{}\\[2mm]
-                                \end{minipage}
-                                \normalfont\normalsize\myul{\url{\repo}}
-                                \raggedcolumns}
-                            % PORTRAIT LAYOUT
-                            {\hfill\null\vspace{1cm}
-                            \begin{center}
-                                \normalfont\fontsize{35}{32}\selectfont\bfseries\title{}\\[7.5mm]
-                                \normalfont\huge\semester\ -- \dozent{}\\[2mm]
-                                \normalfont\Large Autoren:\\
-                                \normalfont\Large\author{}\\[2mm]
-                                \normalfont\large Version:\\
-                                \normalfont\large\version{}\\
-                                \normalfont\normalsize\myul{\url{\repo}}\\[2mm]
-                                \qrcode[level=L, 
-                                        version=0,
-                                        height=2cm]{\repo}
-                            \end{center}
-                            \vfill
-                            \section*{\contentsname}
-                            \begingroup
-                            \setlength{\columnsep}{5mm}
-                            \begin{multicols}{2}
-                                \tableofcontents%
-                            \end{multicols}
-                            \endgroup
-                            \vfill
-                            \thispagestyle{empty}
-                            \newpage
-                            \begin{multicols*}{2}
-                            \raggedcolumns}
-                         }
-                         {\end{multicols*}}
+\ExplSyntaxOn
+\NewDocumentEnvironment{layout}{}{
+    \dim_compare:nNnT{\paperwidth}<{\paperheight}
+    {
+        % PORTRAIT LAYOUT
+        \str_case:en{\str_lowercase:f\titleoption}
+        {
+            {ultra~compact}
+            {
+                \str_if_eq:eeTF {\str_lowercase:f\enableToC}{true}
+                {
+                    \begin{minipage}[t]{0.1\columnwidth} % DigDes-like formatting
+                        \raisebox{-.3\columnwidth}{\qrcode[level=L, 
+                                version=0,
+                                height=0.9\columnwidth]{\repo}}\hfill
+                        \normalfont\footnotesize\rotatebox[origin=tr]{90}{V \version{}}
+                    \end{minipage}\hfill
+                    \begin{minipage}[t]{0.89\columnwidth}
+                        \raggedright%
+                        \normalfont\Huge\bfseries\title{}\\[1mm]
+                        \normalfont\Large\semester\ --\ \dozent{}\\
+                        \large Autoren:\ \author{}\\[1mm]
+                        \myul{\url{\repo}}
+                    \end{minipage}\par
+                        \section*{\contentsname}
+                        \group_begin:
+                        \setlength{\columnsep}{5mm}
+                        \begin{multicols}{2}
+                            \tableofcontents%
+                        \end{multicols}
+                        \group_end:
+                        \hrule
+                    \begin{multicols*}{2}
+                    \raggedcolumns%
+                }
+                {
+                    \begin{multicols*}{2}
+                    \raggedcolumns%
+                    \begin{minipage}[t]{0.2\columnwidth} % MathFML-like formatting
+                        \vspace{-0.225\columnwidth}
+                        \qrcode[level=L, 
+                                version=0,
+                                height=0.9\columnwidth]{\repo}\hfill
+                        \normalfont\footnotesize\rotatebox[origin=tr]{90}{V \version{}}
+                    \end{minipage}\hfill
+                    \begin{minipage}[t]{0.79\columnwidth}
+                        \raggedright%
+                        \normalfont\Huge\bfseries\title{}\\[1mm]
+                        \normalfont\Large\semester\ --\ \dozent{}\\
+                        \large Autoren:\ \author{}\\[1mm]
+                        \normalsize\myul{\url{\repo}}
+                    \end{minipage}\par
+                }
+            }
+            {compact}
+            {
+                \str_if_eq:eeTF {\str_lowercase:f\enableToC}{true}
+                {
+                    \begin{minipage}[t]{0.1\columnwidth} % Elo-like formatting
+                        \raisebox{-.3\columnwidth}{\qrcode[level=L, 
+                                version=0,
+                                height=0.9\columnwidth]{\repo}}\hfill
+                        \normalfont\footnotesize\rotatebox[origin=tr]{90}{V \version{}}
+                    \end{minipage}\hfill
+                    \begin{minipage}[t]{0.89\columnwidth}
+                        \raggedright%
+                        \normalfont\Huge\bfseries\title{}\\[1mm]
+                        \normalfont\Large\semester\ --\ \dozent{}\\
+                        \large Autoren:\ \author{}\\[1mm]
+                        \myul{\url{\repo}}
+                    \end{minipage}\par
+                    \section*{\contentsname}
+                    \group_begin:
+                    \setlength{\columnsep}{5mm}
+                    \begin{multicols}{2}
+                        \tableofcontents%
+                    \end{multicols}
+                    \group_end:
+                    \vfill
+                    \newpage
+                    \begin{multicols*}{2}
+                    \raggedcolumns%
+                }
+                {
+                    \begin{multicols*}{2}
+                    \raggedcolumns%
+                    \begin{minipage}[t]{0.2\columnwidth} % MathFML-like formatting
+                        \vspace{-0.225\columnwidth}
+                        \qrcode[level=L, 
+                                version=0,
+                                height=0.9\columnwidth]{\repo}\hfill
+                        \normalfont\footnotesize\rotatebox[origin=tr]{90}{V \version{}}
+                    \end{minipage}\hfill
+                    \begin{minipage}[t]{0.79\columnwidth}
+                        \raggedright%
+                        \normalfont\Huge\bfseries\title{}\\[1mm]
+                        \normalfont\Large\semester\ --\ \dozent{}\\
+                        \large Autoren:\ \author{}\\[1mm]
+                        \normalsize\myul{\url{\repo}}
+                    \end{minipage}\par
+                }
+            }
+            {normal}
+            {
+                \hfill\null\vspace{1cm}
+                \begin{center}
+                    \normalfont\fontsize{35}{32}\selectfont\bfseries\title{}\\[7.5mm]
+                    \normalfont\huge\semester\ --\ \dozent{}\\
+                    \Large Autoren:\\
+                    \Large\author{}\\[2mm]
+                    \large Version:\\
+                    \large\version{}\\
+                    \normalsize\myul{\url{\repo}}\\[2mm]
+                    \qrcode[level=L, 
+                            version=0,
+                            height=2cm]{\repo}
+                \end{center}
+                \vfill
+                \thispagestyle{empty}
+                \str_if_eq:eeT {\str_lowercase:f\enableToC}{true}
+                {
+                    \section*{\contentsname}
+                    \group_begin:
+                    \setlength{\columnsep}{5mm}
+                    \begin{multicols}{2}
+                        \tableofcontents%
+                    \end{multicols}
+                    \group_end:
+                    \vfill
+                }
+                \newpage
+                \begin{multicols*}{2}
+                \raggedcolumns%
+            }
+        }
+    }
+    
+    \dim_compare:nNnT{\paperwidth}>{\paperheight}
+    {
+        % LANDSCAPE LAYOUT
+        \begin{multicols*}{3}
+        \raggedcolumns%            
+        \begin{minipage}[t]{0.18\columnwidth}
+            \vspace{-0.225\columnwidth}
+            \qrcode[level=L, 
+                    version=0,
+                    height=0.9\columnwidth]{\repo}\\[1mm]
+            \normalfont\footnotesize V \version{}
+            \smallskip
+        \end{minipage}\hfill
+        \begin{minipage}[t]{0.81\columnwidth}
+            \raggedright%
+            \normalfont\Huge\bfseries\title{}\\
+            \normalfont\Large\semester\ --\ \dozent{}\\
+            \large Autoren:\ \author{}\\
+            \normalsize\myul{\url{\repo}}
+        \end{minipage}\par % \par needed or else there is an underfull hbox warning
+        \str_if_eq:eeT {\str_lowercase:f\enableToC}{true}
+        {
+            \section*{\contentsname}
+            \resizebox{\columnwidth}{!}{%
+                \begin{minipage}[t]{1.2\columnwidth}
+                    \begin{multicols}{2}
+                        \tableofcontents%
+                    \end{multicols}
+                \end{minipage}
+            }\par
+        }
+    }%
+}
+{\end{multicols*}}
+\ExplSyntaxOff
 
-
-% new environment for centered tabulars
-\NewDocumentEnvironment{ctabular}{m}
-                        {\center\tabular{#1}}
-                        {\endtabular\endcenter}
-
-
-\NewDocumentEnvironment{rrcases}{}
-                        {\left.\begin{aligned}}
-                        {\end{aligned}\right\rbrace}
 % ---------------------------------------- LISTINGS SETUP -----------------------------------------
 
 % % hack to fix asterisk in lstlisting

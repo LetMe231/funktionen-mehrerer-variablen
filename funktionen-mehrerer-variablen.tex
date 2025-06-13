@@ -11,24 +11,26 @@
 % Paper size:   A4
 % style:        twoside (needed, so odd and even pages have different margins)
 % orientation:  portrait. (use 'landscape' for landscape orientation)
-
+% Ltex: enabled=false
 
 % ========================================= DOCUMENT INFO =========================================
 \def\title{Funktionen mehrerer Variablen}                               % title
 \def\shorttitle{FuVar}                                                  % short title (displayed as PDF title)
 \def\dozent{Prof. Dr. Bernhard Zgraggen}                                % lecturer
-\def\semester{FS 2024}                                                  % semester
-\def\author{Laurin Heitzer, \\Flurin Brechbühler, \\Luca Loop}          % author(s)
+\def\semester{FS 2025}                                                  % semester
+\def\author{Laurin Heitzer, Flurin Brechbühler, Luca Loop}          % author(s)
 \def\repo{https://github.com/P4ntomime/funktionen-mehrerer-variablen}   % repository link
 \def\version{1.0.\today}                                                % version
-\def\pagelimit{12}                                                      % page limit -> causes pages after limit to be red
+\def\pagelimit{12}                                                       % page limit -> causes pages after limit to be red
+\def\titleoption{compact}
+\def\enableToC{false}
 
 
 % ================================= PACKAGES, SETUP AND COMMANDS ==================================
 \input{preamble.tex}
 
 % =========================================== DOCUMENT ============================================
-\begin{document}
+\begin{document} 
     \begin{layout}
         \input{sections/01_dim_schnitt_kont.tex}
         \input{sections/02_diff_dgl_gradient_bi-variater_funktionen.tex}
